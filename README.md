@@ -89,34 +89,15 @@ https://login.microsoftonline.com/<tenant-id>/oauth2/v2.0/authorize?client_id=<c
 &state=<state>
 ```
 
-(Added jwt.ms to the Spa redirect uri)
 
-https://login.microsoftonline.com/3f8b9ad1-63ee-4243-b1df-c1e3109143c3/oauth2/v2.0/authorize?client_id=947da6b9-8b44-4d20-8d7f-382f34a802e1&response_type=code&redirect_uri=https://jwt.ms
 
-https://login.microsoftonline.com/3f8b9ad1-63ee-4243-b1df-c1e3109143c3/oauth2/v2.0/authorize?client_id=947da6b9-8b44-4d20-8d7f-382f34a802e1&response_type=code&redirect_uri=https://jwt.ms&scope=api://947da6b9-8b44-4d20-8d7f-382f34a802e1/ToDoList.ReadWrite
 
-https://login.microsoftonline.com/3f8b9ad1-63ee-4243-b1df-c1e3109143c3/oauth2/v2.0/authorize?client_id=947da6b9-8b44-4d20-8d7f-382f34a802e1&response_type=id_token&redirect_uri=https://jwt.ms&scope=api://947da6b9-8b44-4d20-8d7f-382f34a802e1/ToDoList.ReadWrite&response_mode=fragement
-
-** Enabled Access tokens for implicit flow....
-** switched to web for ms.jwt
-Got a token, but wasn't able to decode it.
-
-ENabled:
-[ ] id_token
 
 - Someone elses sample (for b2c)
 ```bash
 https://login.microsoftonline.com/TENANTID/oauth2/v2.0/authorize?client_id=CLIENTID&response_type=id_token&redirect_uri=https%3A%2F%2Fjwt.ms&scope=openid%20profile%20email&response_mode=fragment&state=12345&nonce=678910
 ```
 
-
-https://login.microsoftonline.com/3f8b9ad1-63ee-4243-b1df-c1e3109143c3/oauth2/v2.0/authorize?client_id=947da6b9-8b44-4d20-8d7f-382f34a802e1&response_type=id_token&redirect_uri=https://jwt.ms&scope=openid&response_mode=fragement
-
-https://login.microsoftonline.com/3f8b9ad1-63ee-4243-b1df-c1e3109143c3/oauth2/v2.0/authorize?client_id=947da6b9-8b44-4d20-8d7f-382f34a802e1&response_type=id_token&redirect_uri=https://jwt.ms&scope=openid&response_mode=fragement&state=12345&nonce=678910
-
-Ultimately these approaches are reducing security in my application.
-
-- Disabled Implicit grant (Access Tokens) in the application registration
 
 ## Shifting to Adding Swagger support for Bearer Token
 - [Old But Possibly Relevant](https://github.com/dotnet/AspNetCore.Docs/blob/main/aspnetcore/security/authentication/identity-api-authorization.md)
@@ -130,9 +111,8 @@ var jwt = HttpContext.Request.Headers["Authorization"].ToString().Split(" ")[1];
 Console.WriteLine(jwt);
 ```
 
-- So... The token in this instance doesn't authenticate, but the application requires a valid JWT, which requires an authenticated user to get.
+- So... The token in this instance doesn't authenticate, but the application requires a valid JWT, which requires an authenticated user to obtain.
 - Applying .RequireAuthentication() causes swagger to take a shit.
-- I may have swagger incorrectly configured.
 
 
 ### Folow-Up Questions
@@ -164,5 +144,3 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 ```  
 
 > Top one works, bottom one does not.
-
-
