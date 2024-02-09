@@ -1,4 +1,7 @@
-# EfCore
+# Auth is still frustrating
+- Best reference I've found for .Net & Entra for external customers (ME:ID, whatever they opt to call it tomorrow) is [here](https://github.com/Azure-Samples/ms-identity-ciam-dotnet-tutorial)
+
+## EfCore basics
 - add packages (Storage Type + .Tools)  EX:
   - Microsoft.EntityFrameworkCore.Sqlite
   - Microsoft.EntityFrameworkCore.Tools
@@ -10,7 +13,7 @@
 - @dotnet cli: dotnet ef migrations add InitialCreate
 - @dotnet cli: dotnet ef database update
 
-# .Net8 Minimal WebApi
+## .Net8 Minimal WebApi basics
 - add endpoints
 ```csharp
 // XXXXEndpoints.cs
@@ -33,7 +36,7 @@ app.RegisterXXXX();
 app.MapGet("/", () => Results.Redirect("/swagger"));
 ```
 
-# Add Entra Authentication
+## Misc Web Resources on 'Add Entra Authentication'
 - [API-M Reference](https://learn.microsoft.com/en-us/azure/api-management/api-management-howto-protect-backend-with-aad)
 
 
@@ -43,7 +46,8 @@ app.MapGet("/", () => Results.Redirect("/swagger"));
 
 ## Well, nothing explicit so here goes
 
-- + Microsoft.Identity.Web
+- dotnet add package Microsoft.Identity.Web
+- follow some of the tutorials similar to 
 - Modify appsettings.json with a registered [Entra application](https://entra.microsoft.com/#view/)
   - Most of this is available from the above link > 'Overview'
   - Scopes are available from the application registration > 'Expose an API'
@@ -68,7 +72,7 @@ app.MapGet("/", () => Results.Redirect("/swagger"));
   "AllowedHosts": "*"
 }
 ```
-- add Authentication Scheme
+- add Authentication Scheme (note that .Add/UseAuthorization() is implicit if not specified in middleware pipeline definition)
 ```csharp
 // program.cs
 ...
@@ -91,9 +95,11 @@ app.UseAuthentication();
 ```bash
 https://login.microsoftonline.com/TENANTID/oauth2/v2.0/authorize?client_id=CLIENTID&response_type=id_token&redirect_uri=https%3A%2F%2Fjwt.ms&scope=openid%20profile%20email&response_mode=fragment&state=12345&nonce=678910
 ```
+### I ended up using this sample project to fetch my JWT since I didn't want to enable implicit flows, etc. And Entra doesn't support testing User Flows with a return to jwt.ms (that I could find).
+- I just dropped the JWT into the console from the API portion of the following sample project
+- https://github.com/future-state/ms-identity-ciam-dotnet-tutorial/tree/main/2-Authorization/2-call-own-api-blazor-server
 
-
-## Shifting to Adding Swagger support for Bearer Token
+## Adding Swagger support for Bearer Token
 > These are interesting but not ultimately useful  
 
 - [Old But Possibly Relevant](https://github.com/dotnet/AspNetCore.Docs/blob/main/aspnetcore/security/authentication/identity-api-authorization.md)
@@ -133,9 +139,9 @@ var jwt = HttpContext.Request.Headers["Authorization"].ToString().Split(" ")[1];
 Console.WriteLine(jwt);
 ```
 
-- So... The token in this instance doesn't authenticate, but the application requires a valid JWT, which requires an authenticated user to obtain.
+- So... The token in this instance doesn't really authenticate, but the application requires a valid JWT, which requires an authenticated user to obtain. The token will allow for authorization though. I could be misunderstanding this.
 
-- Applying .RequireAuthentication() causes swagger to take a shit.
+#### Applying .RequireAuthentication() on the group or specific endpoints causes swagger to take a shit in this setup.
 
 
 ### Folow-Up Questions
