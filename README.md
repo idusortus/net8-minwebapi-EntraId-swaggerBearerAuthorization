@@ -73,37 +73,59 @@ app.MapGet("/", () => Results.Redirect("/swagger"));
 // program.cs
 ...
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("EntraId"));
+    .AddMicrosoftIdentityWebApi(options => 
+    {
+        builder.Configuration.Bind("EntraId", options);
+        options.Events = new JwtBearerEvents();
+    },
+    options=>{
+        builder.Configuration.Bind("EntraId", options);
+    });
     // .EnableTokenAcquisitionToCallDownstreamApi()
     // .AddInMemoryTokenCaches();
 ...
 app.UseAuthentication();
 ```
-- Get a token
-```bash
-https://login.microsoftonline.com/<tenant-id>/oauth2/v2.0/authorize?client_id=<client-id>
-&response_type=code
-&redirect_uri=https://jwt.ms/
-&response_mode=query
-&scope=2ff814a6-3304-4ab8-85cb-cd0e6f879c1d%2F.default
-&state=<state>
-```
 
-
-
-
-
-- Someone elses sample (for b2c)
+- Someone elses sample for url token aquisition (for b2c)
 ```bash
 https://login.microsoftonline.com/TENANTID/oauth2/v2.0/authorize?client_id=CLIENTID&response_type=id_token&redirect_uri=https%3A%2F%2Fjwt.ms&scope=openid%20profile%20email&response_mode=fragment&state=12345&nonce=678910
 ```
 
 
 ## Shifting to Adding Swagger support for Bearer Token
+> These are interesting but not ultimately useful  
+
 - [Old But Possibly Relevant](https://github.com/dotnet/AspNetCore.Docs/blob/main/aspnetcore/security/authentication/identity-api-authorization.md)
 - [Swagger Auth Cheat](https://www.josephguadagno.net/2022/06/03/enabling-user-authentication-in-swagger-using-microsoft-identity)
 
 - Populate SwaggerDoc, AddSecuirityDefinition, AddSecurityRequirement
+```csharp
+// swagger options & enable in UI auth. Dang but this is ugly looking. // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddSwaggerGen(option =>
+{
+    option.SwaggerDoc("v1", new OpenApiInfo { Title = "Bucketlist API", Version = "v1" });    
+    option.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        In = ParameterLocation.Header,
+        Description = "Please enter a valid token",
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        BearerFormat = "JWT",
+        Scheme = "Bearer"
+    });    
+    option.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme {
+                Reference = new OpenApiReference  {
+                    Type = ReferenceType.SecurityScheme, Id = "Bearer"
+                }
+            }, new string[] {}
+        }
+    });
+});
+```
 
 - To see the token in the console:
 ```csharp
@@ -112,6 +134,7 @@ Console.WriteLine(jwt);
 ```
 
 - So... The token in this instance doesn't authenticate, but the application requires a valid JWT, which requires an authenticated user to obtain.
+
 - Applying .RequireAuthentication() causes swagger to take a shit.
 
 
@@ -124,14 +147,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     {
         builder.Configuration.Bind("EntraId", options);
         options.Events = new JwtBearerEvents();
-        // {
-        //     OnTokenValidated = context =>
-        //     {
-        //         var token = context.SecurityToken;
-        //         Console.WriteLine(token);
-        //         return Task.CompletedTask;
-        //     }
-        // };
     },
     options=>{
         builder.Configuration.Bind("EntraId", options);
