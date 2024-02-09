@@ -1,0 +1,9 @@
+@local = http://localhost:5283
+
+GET {{local}}/api/v1/bucketlist/items
+Accept: application/json
+
+###
+GET {{local}}/api/v1/bucketlist/itemsAuth
+Accept: application/json
+Authorization : Bearer {{ INSERT JWT HERE, May not need Bearer prefix, didn't try it. }}
